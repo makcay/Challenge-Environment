@@ -9,5 +9,5 @@ If you want to add **more extensions** in the runtime environment, please create
 ## Get the pre-provided docker image
 
 ```bash
-docker pull opennetlab.azurecr.io/challenge-env
+run `make all` to create challenge-env docker image with tc in it
 ```
