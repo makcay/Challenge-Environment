@@ -55,7 +55,11 @@ if __name__ == "__main__":
     parser = init_network_argparse()
     args = parser.parse_args()
     out_dict = {}    
-    out_dict["network"] = get_network_score(args)
+    netEvalResult=get_network_score(args);
+    out_dict["network"] = netEvalResult.network_score
+    out_dict["recv_rate_score"] = netEvalResult.recv_rate_score
+    out_dict["delay_score"] = netEvalResult.delay_score
+    out_dict["loss_rate"] = netEvalResult.loss_rate
         
     if args.output:
         with open(args.output, 'w') as f:

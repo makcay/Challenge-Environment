@@ -4,6 +4,7 @@
 from utils.net_info import NetInfo
 import numpy as np
 from abc import ABC, abstractmethod
+from utils.net_eval_result import NetEvaluationResult
 
 
 class NetEvalMethod(ABC):
@@ -72,4 +73,6 @@ class NetEvalMethodNormal(NetEvalMethod):
                             100 * 0.2 * avg_recv_rate_score + \
                             100 * 0.3 * (1 - avg_loss_rate)
 
-        return network_score
+        result = NetEvaluationResult(network_score=network_score, recv_rate_score=avg_recv_rate_score, delay_score=avg_delay_score, loss_rate=avg_loss_rate)
+
+        return result
