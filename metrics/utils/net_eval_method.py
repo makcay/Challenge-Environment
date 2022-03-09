@@ -31,6 +31,8 @@ class NetEvalMethodNormal(NetEvalMethod):
         delay_list = []
         loss_count = 0
         self.last_seqNo = {}
+        min_sequence_number = -1
+        max_sequence_number = -1 
         for item in net_data:
             ssrc = item["packetInfo"]["header"]["ssrc"]
             sequence_number = item["packetInfo"]["header"]["sequenceNumber"]
@@ -46,6 +48,11 @@ class NetEvalMethodNormal(NetEvalMethod):
             if ssrc in self.last_seqNo:
                 loss_count += max(0, sequence_number - self.last_seqNo[ssrc] - 1)
             self.last_seqNo[ssrc] = sequence_number
+
+            if min_sequence_number==-1 or sequence_number < min_sequence_number:
+                min_sequence_number = sequence_number
+            if max_sequence_number==-1 or sequence_number > max_sequence_number:
+                max_sequence_number = sequence_number
                 
             ssrc_info[ssrc]["delay_list"].append(ssrc_info[ssrc]["time_delta"] + tmp_delay)
             ssrc_info[ssrc]["received_nbytes"] += item["packetInfo"]["payloadSize"]
@@ -55,6 +62,7 @@ class NetEvalMethodNormal(NetEvalMethod):
         # scale delay list
         for ssrc in ssrc_info:
             min_delay = min(ssrc_info[ssrc]["delay_list"])
+            #print("delay_list: "+str(ssrc_info[ssrc]["delay_list"])+"\n")
             ssrc_info[ssrc]["scale_delay_list"] = [min(self.max_delay, delay) for delay in ssrc_info[ssrc]["delay_list"]]
             delay_pencentile_95 = np.percentile(ssrc_info[ssrc]["scale_delay_list"], 95)
             ssrc_info[ssrc]["delay_score"] = (self.max_delay - delay_pencentile_95) / (self.max_delay - min_delay)
@@ -66,7 +74,10 @@ class NetEvalMethodNormal(NetEvalMethod):
         avg_recv_rate_score = min(1, np.mean(recv_rate_list) / self.ground_recv_rate)
 
         # higher loss rate, lower score
-        avg_loss_rate = loss_count / (loss_count + len(net_data))
+        total_packets = max_sequence_number - min_sequence_number
+        avg_loss_rate = loss_count / (loss_count + total_packets)
+        #buggy, you cannot use length
+        #avg_loss_rate = loss_count / (loss_count + len(net_data))
 
         # calculate result score
         network_score = 100 * 0.2 * avg_delay_score + \
